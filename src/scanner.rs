@@ -13,13 +13,11 @@ pub fn scan_tokens(src: &String) -> Vec<Token> {
     let mut start: usize = 0;
     let mut current: usize = 0;
     let mut line: usize = 1;
-    let src_chars = src.chars();
-    let mut src_peek = src_chars.peekable();
 
     while !is_end(current, &src) {
         println!("Current: {current}, {}", src.len());
         start = current;
-        scan_token(src, &mut src_peek, start, &mut current, &mut line, &mut tokens);
+        scan_token(src, start, &mut current, &mut line, &mut tokens);
         println!("Current: {current}, {}", src.len());
     }
 
@@ -34,15 +32,14 @@ pub fn scan_tokens(src: &String) -> Vec<Token> {
 
 fn scan_token(
     src: &String,
-    src_peek: &mut Peekable<Chars>,
     start: usize,
     current: &mut usize,
     line: &mut usize,
     tokens: &mut Vec<Token>,
 ) {
     //println!("scan_token: {src}");
-
-    let c = advance_str(src_peek, current);
+    let mut src_peek = src.chars().peekable();
+    let c = advance_str(src, current);
 
     println!("scan_token: {c}");
 
@@ -90,7 +87,7 @@ fn scan_token(
             match match_next('/', &src, current) {
                 true => {
                     while *src_peek.peek().unwrap() != '\n' && !is_end(*current, src) {
-                        advance_str(src_peek, current);
+                        advance_str(src, current);
                     }
                 }
                 false => {
@@ -127,17 +124,10 @@ fn match_next(exp: char, src: &String, current: &mut usize) -> bool {
     true
 }
 
-fn advance_str(src_peek: &mut Peekable<Chars>, current: &mut usize) -> char {
-    //println!("advance_str: {src}");
-    let mut char_ret = 'a';
-
-    if let Some(c) = src_peek.next() {
-        char_ret = c;
-    }
-
+fn advance_str(src: &String, current: &mut usize) -> char {
     *current += 1;
-
-    char_ret
+    let c = src.as_bytes()[*current - (1 as usize)] as char;
+    c
 }
 
 fn add_token(
